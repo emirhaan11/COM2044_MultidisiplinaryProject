@@ -15,6 +15,8 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+
+
 public class MainApp extends Application {
 
     private final HughsonWestlakeService testService = new HughsonWestlakeService();
@@ -131,17 +133,21 @@ public class MainApp extends Application {
     }
 
     private void connectToSelectedPort() {
-        String selectedPort = portBox.getValue();
+        String selectedPortDisplay = portBox.getValue();
 
-        if (selectedPort == null) {
+        if (selectedPortDisplay == null) {
             statusLabel.setText("Please select a COM port.");
             return;
         }
 
-        boolean connected = serialService.connect(selectedPort);
+        // Extract just the "COMX" part before the colon
+        String actualPort = selectedPortDisplay.split(":")[0].trim();
+
+        // Connect using ONLY the extracted port name
+        boolean connected = serialService.connect(actualPort);
 
         if (connected) {
-            statusLabel.setText("Connected to " + selectedPort);
+            statusLabel.setText("Connected to " + actualPort);
             connectButton.setDisable(true);
             refreshPortsButton.setDisable(true);
             portBox.setDisable(true);
@@ -310,7 +316,11 @@ public class MainApp extends Application {
         portBox.getItems().clear();
 
         for (SerialPort port : serialService.getAvailablePorts()) {
-            portBox.getItems().add(port.getSystemPortName());
+            String portName = port.getSystemPortName();             // e.g., "COM3"
+            String description = port.getDescriptivePortName();     // e.g., "Bluetooth Serial Port (COM3)"
+
+            // Add the formatted string to the dropdown
+            portBox.getItems().add(portName + ": " + description);
         }
 
         if (!portBox.getItems().isEmpty()) {
