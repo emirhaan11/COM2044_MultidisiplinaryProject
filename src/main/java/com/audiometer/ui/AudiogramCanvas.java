@@ -9,6 +9,7 @@ import javafx.scene.text.Font;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Comparator;
 
 public class AudiogramCanvas extends Canvas {
 
@@ -48,6 +49,8 @@ public class AudiogramCanvas extends Canvas {
         drawBackground(gc, w, h);
         drawGrid(gc, w, h);
         drawLabels(gc, w, h);
+        drawConnectingLines(gc, w, h);
+        drawPoints(gc, w, h);
         drawPoints(gc, w, h);
     }
 
@@ -140,6 +143,48 @@ public class AudiogramCanvas extends Canvas {
 
     public void setHighlightedFrequency(int frequency) {
         draw();
+    }
+
+    private void drawConnectingLines(GraphicsContext gc, double w, double h) {
+        drawLineForEar(gc, w, h, Ear.RIGHT, Color.RED);
+        drawLineForEar(gc, w, h, Ear.LEFT, Color.BLUE);
+    }
+
+    private void drawLineForEar(GraphicsContext gc, double w, double h, Ear ear, Color color) {
+        List<AudiogramPoint> earPoints = points.stream()
+                .filter(p -> p.getEar() == ear)
+                .sorted(Comparator.comparingInt(p -> frequencyIndex(p.getFrequency())))
+                .toList();
+
+        if (earPoints.size() < 2) {
+            return;
+        }
+
+        gc.setStroke(color);
+        gc.setLineWidth(2);
+        gc.setLineDashes(0);
+
+        for (int i = 0; i < earPoints.size() - 1; i++) {
+            AudiogramPoint p1 = earPoints.get(i);
+            AudiogramPoint p2 = earPoints.get(i + 1);
+
+            double x1 = xForFrequency(p1.getFrequency(), w);
+            double y1 = yForDb(p1.getDbHL(), h);
+
+            double x2 = xForFrequency(p2.getFrequency(), w);
+            double y2 = yForDb(p2.getDbHL(), h);
+
+            gc.strokeLine(x1, y1, x2, y2);
+        }
+    }
+
+    private int frequencyIndex(int frequency) {
+        for (int i = 0; i < frequencies.length; i++) {
+            if (frequencies[i] == frequency) {
+                return i;
+            }
+        }
+        return 0;
     }
 
 }
