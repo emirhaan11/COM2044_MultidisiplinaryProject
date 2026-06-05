@@ -35,6 +35,7 @@ public class MainApp extends Application {
     private Button stopTestButton;
     private Button connectButton;
     private Button refreshPortsButton;
+    private Button fakeResponseButton;
 
     private ComboBox<String> portBox;
 
@@ -68,6 +69,9 @@ public class MainApp extends Application {
         stopTestButton = new Button("Stop Test");
         stopTestButton.setDisable(true);
 
+        fakeResponseButton = new Button("Fake Response");
+        fakeResponseButton.setDisable(true);
+
         audiogramCanvas = new AudiogramCanvas(650, 420);
 
         refreshPortList();
@@ -86,6 +90,16 @@ public class MainApp extends Application {
 
         stopTestButton.setOnAction(e -> stopAutomaticTest("Test stopped by user."));
 
+        fakeResponseButton.setOnAction(e -> {
+            if (!testRunning || !waitingForResponse) {
+                statusLabel.setText("Fake response ignored. No tone is waiting for response.");
+                return;
+            }
+
+            statusLabel.setText("Fake RESPONSE generated.");
+            handleResponseReceived();
+        });
+
         GridPane infoPanel = new GridPane();
         infoPanel.setHgap(12);
         infoPanel.setVgap(12);
@@ -103,7 +117,7 @@ public class MainApp extends Application {
         infoPanel.add(portBox, 1, 3);
 
         HBox serialButtons = new HBox(10, refreshPortsButton, connectButton);
-        HBox testButtons = new HBox(10, startTestButton, stopTestButton);
+        HBox testButtons = new HBox(10, startTestButton, stopTestButton, fakeResponseButton);
 
         VBox leftPanel = new VBox(
                 20,
@@ -172,6 +186,7 @@ public class MainApp extends Application {
 
         startTestButton.setDisable(true);
         stopTestButton.setDisable(false);
+        fakeResponseButton.setDisable(false);
 
         statusLabel.setText("Automatic test started.");
         sendCurrentToneAndWait();
@@ -278,6 +293,7 @@ public class MainApp extends Application {
 
         startTestButton.setDisable(true);
         stopTestButton.setDisable(true);
+        fakeResponseButton.setDisable(true);
 
         updateCurrentLabels();
 
@@ -308,6 +324,7 @@ public class MainApp extends Application {
 
         startTestButton.setDisable(false);
         stopTestButton.setDisable(true);
+        fakeResponseButton.setDisable(true);
 
         statusLabel.setText(reason);
     }
@@ -316,10 +333,9 @@ public class MainApp extends Application {
         portBox.getItems().clear();
 
         for (SerialPort port : serialService.getAvailablePorts()) {
-            String portName = port.getSystemPortName();             // e.g., "COM3"
-            String description = port.getDescriptivePortName();     // e.g., "Bluetooth Serial Port (COM3)"
+            String portName = port.getSystemPortName();
+            String description = port.getDescriptivePortName();
 
-            // Add the formatted string to the dropdown
             portBox.getItems().add(portName + ": " + description);
         }
 
