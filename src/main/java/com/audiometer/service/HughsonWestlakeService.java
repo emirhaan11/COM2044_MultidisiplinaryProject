@@ -4,6 +4,8 @@ import com.audiometer.model.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.audiometer.functional.DbCalculator;
+import com.audiometer.functional.ThresholdEvaluator;
 
 public class HughsonWestlakeService {
 
@@ -68,7 +70,10 @@ public class HughsonWestlakeService {
                             + heardCount + "/" + trialCount
             );
 
-            if (trialCount >= 3 && heardCount >= 2) {
+            if (ThresholdEvaluator.isThresholdReached(
+                    trialCount,
+                    heardCount
+            )) {
                 HearingThreshold threshold = new HearingThreshold(
                         currentEar,
                         getCurrentFrequency(),
@@ -80,15 +85,8 @@ public class HughsonWestlakeService {
             }
         }
 
-        if (heard) {
-            currentDb -= 10;
-            lastMoveWasUp = false;
-        } else {
-            currentDb += 5;
-            lastMoveWasUp = true;
-        }
-
-        clampDb();
+        currentDb = DbCalculator.nextDbLevel(currentDb, heard);
+        lastMoveWasUp = !heard;
         return null;
     }
 

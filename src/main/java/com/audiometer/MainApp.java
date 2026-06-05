@@ -14,7 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
+import com.audiometer.functional.ResponseParser;
 
 
 public class MainApp extends Application {
@@ -81,7 +81,7 @@ public class MainApp extends Application {
         connectButton.setOnAction(e -> connectToSelectedPort());
 
         serialService.setListener(message -> {
-            if (message.equalsIgnoreCase("RESPONSE")) {
+            if (ResponseParser.isResponseMessage(message)) {
                 Platform.runLater(this::handleResponseReceived);
             }
         });
